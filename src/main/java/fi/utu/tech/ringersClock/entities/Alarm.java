@@ -1,5 +1,7 @@
 package fi.utu.tech.ringersClock.entities;
 
+import fi.utu.tech.weatherInfo.WeatherData;
+
 import java.io.Serializable;
 import java.time.*;
 import java.time.temporal.ChronoUnit;
@@ -7,8 +9,6 @@ import java.time.temporal.ChronoUnit;
 public class Alarm implements Serializable {
     private static final long serialVersionUID = 1L;
     private Instant time;
-    private int hour;
-    private int minute;
     private boolean noRain;
     private boolean tempIsPlus;
 
@@ -34,4 +34,11 @@ public class Alarm implements Serializable {
 
     public boolean getTempIsPlus() { return this.tempIsPlus; }
 
+    public boolean weatherConfirm(WeatherData data){
+        if (this.noRain && data.getRainAmount() > 0) {
+            return false;
+        } else if (this.tempIsPlus && data.getTemperature() < 0) {
+            return false;
+        } return true;
+    }
 }

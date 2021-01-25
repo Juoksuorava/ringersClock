@@ -13,7 +13,6 @@ import java.util.Arrays;
 
 import fi.utu.tech.ringersClock.entities.*;
 
-
 /*
  * A class for handling network related stuff
  */
@@ -109,7 +108,10 @@ public class ClockClient extends Thread {
 
 		private void handleAlarmUser() { gio.alarm(); }
 
-		private void handleConfirmWakeUpGroupAlarm() { gio.clearAlarmTime(); }
+		private void handleConfirmWakeUpGroupAlarm(WakeUpGroup payload) {
+			gio.clearAlarmTime();
+			gio.confirmAlarm();
+		}
 
 		public void handle(Object obj)
 		{
@@ -117,11 +119,11 @@ public class ClockClient extends Thread {
 			try {
 				if(obj instanceof ServerCall) {
 					var cmd = (ServerCall<?>)obj;
-					var command = cmd.getCommand();
+					var call = cmd.getCall();
 					var payload = cmd.getPayload();
 
-					switch  (command) {
-						case AlARM_TIME_RESPONCE:
+					switch  (call) {
+						case ALARM_TIME_RESPONSE:
 							if(payload instanceof Instant) handleAlarmTimeResponse((Instant)payload);
 							break;
 
@@ -129,7 +131,7 @@ public class ClockClient extends Thread {
 							handleAlarmTimeCancelled();
 							break;
 
-						case APPEND_TO_STATUS:
+						case STATUS_UPDATE:
 							if(payload instanceof String) handleAppendToStatus((String)payload);
 							break;
 
@@ -137,9 +139,8 @@ public class ClockClient extends Thread {
 							handleAlarmUser();
 							break;
 
-
-						case CONFIRM_WAKE_UP_GROUP_ALARM:
-							handleConfirmWakeUpGroupAlarm();
+						case CONFIRM_ALARM:
+							handleConfirmWakeUpGroupAlarm((WakeUpGroup)payload);
 							break;
 
 						case UPDATE_EXISTING_GROUPS:
@@ -147,7 +148,7 @@ public class ClockClient extends Thread {
 							break;
 
 						default:
-							throw new Exception("Unknown CommandPayloadType: "+command);
+							throw new Exception("Unknown CommandPayloadType: "+call);
 					}
 				} else {
 					throw new Exception("Message from client not handled because its not Command or CommandPayload");

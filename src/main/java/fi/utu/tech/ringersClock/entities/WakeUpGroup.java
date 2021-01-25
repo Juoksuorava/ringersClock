@@ -42,7 +42,14 @@ public class WakeUpGroup implements Serializable {
 	public Integer getID() { return this.ID; }
 	public void setID(Integer ID) { this.ID = ID; }
 
+	public Integer[] getPorts() {
+		return this.ports.toArray(new Integer[this.ports.size()]);
+	}
+
 	public Alarm getAlarm() { return alarm; }
+	public long getAlarmTime() {
+		return alarm.getTime().toEpochMilli();
+	}
 	public void setAlarm(Alarm alarm) { this.alarm = alarm; }
 
 	@Override

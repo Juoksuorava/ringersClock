@@ -176,4 +176,7 @@ public class Gui_IO {
 				ClientCallType.RESIGN_WAKE_UP_GROUP, value)
 		);
 	}
+
+	public void confirmAlarm() {
+	}
 }

@@ -25,8 +25,6 @@ public class ServerSocketListener extends Thread {
 		this.wus = wus;
 
 		ServerSocketListener.instance = this;
-		this.thread = new Thread(this);
-		this.thread.start();
 	}
 
 	public void run() {
@@ -38,19 +36,26 @@ public class ServerSocketListener extends Thread {
 			try {
 				Socket clientSocket = serverSocket.accept();
 				var ch = new ClientHandler(clientSocket, wus);
-				clientHandlers.put(clientSocket.getLocalPort(), ch);
+				clientHandlers.put(clientSocket.getPort(), ch);
 
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
 	}
-	public static void sendCommandToEveryClient(ServerCall<?> cmd)
-	{
-		for(var entry : instance.clientHandlers.entrySet())
-		{
+	public static void sendCallToEveryClient(ServerCall<?> cmd) {
+		for(var entry : instance.clientHandlers.entrySet()) {
 			entry.getValue().send(cmd);
 		}
 	}
 
+	public static void sendCallToClient(Integer client, ServerCall<?> call) {
+		instance.clientHandlers.get(client).send(call);
+	}
+
+	public static void sendCallToMultipleClients(Integer[] clients, ServerCall<?> call) {
+		for (var ID : clients) {
+			instance.clientHandlers.get(ID).send(call);
+		}
+	}
 }

@@ -1,6 +1,7 @@
 package fi.utu.tech.ringersClockServer;
 import fi.utu.tech.ringersClock.entities.ServerCall;
 import fi.utu.tech.ringersClock.entities.ClientCall;
+import fi.utu.tech.ringersClock.entities.ServerCallType;
 import fi.utu.tech.ringersClock.entities.WakeUpGroup;
 
 import java.net.*;
@@ -40,6 +41,7 @@ public class ClientHandler extends Thread {
             outS = client.getOutputStream();
             objOutS = new ObjectOutputStream(outS);
             objInS = new ObjectInputStream(inS);
+            initialize();
 
             while (client.isConnected()) {
                 mh.handle(objInS.readObject());
@@ -48,6 +50,13 @@ public class ClientHandler extends Thread {
             e.printStackTrace();
             System.out.println("Connection to client closed: " + client.getRemoteSocketAddress());
         }
+    }
+
+    private void initialize() {
+        send(new ServerCall<>(
+                ServerCallType.STATUS_UPDATE,"Server connection established: +" + client.getPort()));
+        send(new ServerCall<>(
+                ServerCallType.UPDATE_EXISTING_GROUPS, wus.getGroups()));
     }
 
     public void sendSerializable(Serializable msg) {
@@ -70,31 +79,35 @@ public class ClientHandler extends Thread {
     private class MessageHandler {
 
         private void handleAlarmAll() {
-            System.out.println("handleAlarmAll: " + client.getRemoteSocketAddress());
+            wus.alarmAll(client.getPort());
         }
 
         private void handleCancelAlarm() {
-            System.out.println("handleCancelAlarm: " + client.getRemoteSocketAddress());
+            wus.cancelAlarm(client.getPort());
         }
 
         private void handleResignGroup(WakeUpGroup wug) {
-            wus.resignGroup(wug.getID(), client.getLocalPort());
+            if (wug.getID() == client.getPort()){
+                wus.removeGroup(wug);
+            } else {
+                wus.resignGroup(wug.getID(), client.getPort());
+            }
         }
 
         private void handleCreateGroup(WakeUpGroup wug) {
-            int ID = client.getLocalPort();
+            int ID = client.getPort();
             wus.addGroup(ID, wug);
         }
 
         private void handleJoinGroup(WakeUpGroup wug) {
-            wus.joinGroup(wug.getID(), client.getLocalPort());
+            wus.joinGroup(wug, client.getPort());
         }
 
         public void handle(Object obj) {
             try {
                 if (obj instanceof ClientCall) {
                     var cmd = (ClientCall<?>) obj;
-                    var command = cmd.getCommand();
+                    var command = cmd.getCall();
                     var payload = cmd.getPayload();
 
                     switch (command) {
@@ -119,9 +132,6 @@ public class ClientHandler extends Thread {
                         case RESIGN_WAKE_UP_GROUP:
                             if (payload instanceof WakeUpGroup) handleResignGroup((WakeUpGroup) payload);
                             else throw new Exception("Client message not handled correctly: payload not in correct format");
-
-                        default:
-                            throw new Exception("Unknown payload: " + command);
                     }
                 } else { throw new Exception("Client message not handled correctly: incorrect command/payload"); }
             } catch (Exception e) { e.printStackTrace(); }
