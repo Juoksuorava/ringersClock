@@ -1,5 +1,6 @@
 package fi.utu.tech.ringersClock;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
 import fi.utu.tech.ringersClock.entities.*;
@@ -14,8 +15,18 @@ public class Gui_IO {
 
 	private MainViewController cont;
 
+	private ClockClient instance;
+
 	public Gui_IO(MainViewController cont) {
 		this.cont = cont;
+	}
+
+	public void setInstance(ClockClient cc) {
+		instance = cc;
+	}
+
+	public ClockClient getInstance() {
+		return instance;
 	}
 
 	/*
@@ -126,7 +137,7 @@ public class Gui_IO {
 	 */
 	public void AlarmAll(WakeUpGroup group) {
 		System.out.println("AlarmAll " + group.getName());
-		ClockClient.send(new ClientCall<>(ClientCallType.ALARM_ALL));
+		instance.send(new ClientCall<>(ClientCallType.ALARM_ALL));
 	}
 
 	/*
@@ -135,7 +146,7 @@ public class Gui_IO {
 	 */
 	public void CancelAlarm(WakeUpGroup group) {
 		System.out.println("CancelAll " + group.getName());
-		ClockClient.send(new ClientCall<>(ClientCallType.CANCEL_ALARM));
+		instance.send(new ClientCall<>(ClientCallType.CANCEL_ALARM));
 	}
 
 	/*
@@ -143,10 +154,10 @@ public class Gui_IO {
 	 * wake-up time must be sent to server
 	 */
 	public void createNewGroup(String name, Integer hour, Integer minute, boolean noRain, boolean tempPlus) {
-		System.out.println("Create New Group pressed, name: " + name + " Wake-up time: " + hour + ":" + minute + " Rain allowed: " + noRain + " Temperature over 0 deg: " + tempPlus);
-		Integer ID = ClockClient.getLocalPort();
+		System.out.println("Create New Group pressed, name: " + name + " Wake-up time: " + hour + ":" + minute + " Rain allowed: " + !noRain + " Temperature over 0 deg: " + tempPlus);
+		Integer ID = instance.getLocalPort();
 		Alarm alarm = new Alarm(hour, minute, noRain, tempPlus);
-		ClockClient.send(
+		instance.send(
 				new ClientCall<WakeUpGroup>(
 						ClientCallType.CREATE_WAKE_UP_GROUP, new WakeUpGroup(ID, name, alarm))
 		);
@@ -159,7 +170,7 @@ public class Gui_IO {
 
 	public void joinGroup(WakeUpGroup group) {
 		System.out.println("Join Group pressed" + group.getName());
-		ClockClient.send(
+		instance.send(
 				new ClientCall<WakeUpGroup>(
 						ClientCallType.JOIN_WAKE_UP_GROUP, group)
 		);
@@ -171,7 +182,7 @@ public class Gui_IO {
 	 */
 	public void resignGroup(WakeUpGroup value) {
 		System.out.println("Resign Group pressed");
-		ClockClient.send(
+		instance.send(
 				new ClientCall<WakeUpGroup>(
 				ClientCallType.RESIGN_WAKE_UP_GROUP, value)
 		);

@@ -19,7 +19,7 @@ import fi.utu.tech.ringersClock.entities.*;
 
 public class ClockClient extends Thread {
 
-	private static ClockClient instance = null;
+	private ClockClient instance;
 	private MessageHandler mh;
 	private String host;
 	private int port;
@@ -39,22 +39,17 @@ public class ClockClient extends Thread {
 		this.server = new Socket(host, port);
 		this.thread = new Thread(this);
 		this.thread.start();
-
-		if (ClockClient.instance != null) {
-			close();
-		}
-		ClockClient.instance = this;
+		this.instance = this;
+		gio.setInstance(this);
 	}
 
 	public void run() {
 		System.out.println("Connection initiated - Host name: " + host + " Port: " + port + " Gui_IO:" + gio.toString());
 		try {
-			inS = server.getInputStream();
-			outS = server.getOutputStream();
-			objOutS = new ObjectOutputStream(outS);
-			objInS = new ObjectInputStream(inS);
+			objOutS = new ObjectOutputStream(server.getOutputStream());
+			objInS = new ObjectInputStream(server.getInputStream());
 
-			while (server.isConnected()) {
+			while (true) {
 				mh.handle(objInS.readObject());
 			}
 
@@ -64,7 +59,7 @@ public class ClockClient extends Thread {
 		}
 	}
 
-	public static void sendSerializable(Serializable data) {
+	public void sendSerializable(Serializable data) {
 		if (instance != null) {
 			try {
 				instance.objOutS.writeObject(data);
@@ -77,15 +72,15 @@ public class ClockClient extends Thread {
 		}
 	}
 
-	public static int getLocalPort() {
-		return instance.server.getLocalPort();
+	public int getLocalPort() {
+		return port;
 	}
 
-	public static void send(ClientCall<?> command) {
-		ClockClient.sendSerializable(command);
+	public void send(ClientCall<?> command) {
+		instance.sendSerializable(command);
 	}
 
-	public static void close() throws IOException {
+	public void close() throws IOException {
 		if (instance != null) {
 			instance.objInS.close();
 			instance.objOutS.close();
@@ -110,7 +105,7 @@ public class ClockClient extends Thread {
 
 		private void handleConfirmWakeUpGroupAlarm(WakeUpGroup payload) {
 			gio.clearAlarmTime();
-			gio.confirmAlarm();
+			gio.confirmAlarm(payload);
 		}
 
 		public void handle(Object obj)

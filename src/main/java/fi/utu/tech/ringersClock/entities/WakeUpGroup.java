@@ -13,7 +13,7 @@ public class WakeUpGroup implements Serializable {
 	private static final long serialVersionUID = 1L;
 	private String name;
 	private Integer ID;
-	private Alarm alarm = null;
+	private Alarm alarm;
 	private ArrayList<Integer> ports;
 
 	public WakeUpGroup(Integer id, String name, Alarm alarm) {
@@ -21,7 +21,7 @@ public class WakeUpGroup implements Serializable {
 		this.ID = id;
 		this.name = name;
 		this.alarm = alarm;
-		ports = new ArrayList<Integer>();
+		ports = new ArrayList<>();
 		this.ports.add(id);
 	}
 

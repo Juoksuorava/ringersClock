@@ -42,9 +42,8 @@ public class ClientHandler extends Thread {
             objOutS = new ObjectOutputStream(outS);
             objInS = new ObjectInputStream(inS);
             initialize();
-
-            while (client.isConnected()) {
-                mh.handle(objInS.readObject());
+            while (true) {
+                    mh.handle(objInS.readObject());
             }
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
@@ -133,7 +132,7 @@ public class ClientHandler extends Thread {
                             if (payload instanceof WakeUpGroup) handleResignGroup((WakeUpGroup) payload);
                             else throw new Exception("Client message not handled correctly: payload not in correct format");
                     }
-                } else { throw new Exception("Client message not handled correctly: incorrect command/payload"); }
+                } else { throw new Exception("Client message not handled correctly: incorrect object"); }
             } catch (Exception e) { e.printStackTrace(); }
         }
     }
