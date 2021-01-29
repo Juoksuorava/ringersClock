@@ -70,7 +70,6 @@ public class MainViewController {
 		statusText.setWrapText(true);
 		alarmPic.setVisible(false);
 
-
 		for (int i = 0; i < 24; i++) {
 			newHour.getItems().add(i);
 		}

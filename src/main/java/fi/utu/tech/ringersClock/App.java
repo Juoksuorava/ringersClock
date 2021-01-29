@@ -38,7 +38,8 @@ public class App extends Application {
 		Parameters parameters = this.getParameters();
 		String serverIP = parameters.getNamed().getOrDefault("host", "127.0.0.1");
 		int port = Integer.parseInt(parameters.getNamed().getOrDefault("port", "3000"));
-
+		gio = new Gui_IO(controller);
+		controller.setGui_IO(gio);
 		try {
 			new ClockClient(serverIP, port, gio);
 		} catch (IOException e)

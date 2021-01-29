@@ -11,7 +11,7 @@ import java.util.Map;
 
 public class ServerSocketListener extends Thread {
 
-	private final String host;
+	private String host;
 	private static ServerSocketListener instance;
 	private int port;
 	private WakeUpService wus;

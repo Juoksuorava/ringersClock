@@ -19,15 +19,13 @@ import fi.utu.tech.ringersClock.entities.*;
 
 public class ClockClient extends Thread {
 
-	private ClockClient instance;
+	private static ClockClient instance;
 	private MessageHandler mh;
 	private String host;
 	private int port;
 	private Gui_IO gio;
 	private Thread thread;
 	private Socket server;
-	private InputStream inS;
-	private OutputStream outS;
 	private ObjectOutputStream objOutS;
 	private ObjectInputStream objInS;
 
@@ -39,6 +37,7 @@ public class ClockClient extends Thread {
 		this.server = new Socket(host, port);
 		this.thread = new Thread(this);
 		this.thread.start();
+		if (instance != null) { close(); }
 		this.instance = this;
 		gio.setInstance(this);
 	}
@@ -49,7 +48,7 @@ public class ClockClient extends Thread {
 			objOutS = new ObjectOutputStream(server.getOutputStream());
 			objInS = new ObjectInputStream(server.getInputStream());
 
-			while (true) {
+			while (server.isConnected()) {
 				mh.handle(objInS.readObject());
 			}
 
@@ -59,7 +58,7 @@ public class ClockClient extends Thread {
 		}
 	}
 
-	public void sendSerializable(Serializable data) {
+	public static void sendSerializable(Serializable data) {
 		if (instance != null) {
 			try {
 				instance.objOutS.writeObject(data);
@@ -73,14 +72,14 @@ public class ClockClient extends Thread {
 	}
 
 	public int getLocalPort() {
-		return port;
+		return instance.server.getLocalPort();
 	}
 
-	public void send(ClientCall<?> command) {
+	public static void send(ClientCall<?> command) {
 		instance.sendSerializable(command);
 	}
 
-	public void close() throws IOException {
+	public static void close() throws IOException {
 		if (instance != null) {
 			instance.objInS.close();
 			instance.objOutS.close();

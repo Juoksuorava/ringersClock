@@ -30,6 +30,7 @@ public class ClientHandler extends Thread {
         this.wus = wus;
         this.thread = new Thread(this);
         this.thread.start();
+        mh = new MessageHandler();
     }
 
     @Override
@@ -42,7 +43,7 @@ public class ClientHandler extends Thread {
             objOutS = new ObjectOutputStream(outS);
             objInS = new ObjectInputStream(inS);
             initialize();
-            while (true) {
+            while (client.isConnected()) {
                     mh.handle(objInS.readObject());
             }
         } catch (IOException | ClassNotFoundException e) {
